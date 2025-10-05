@@ -10,12 +10,12 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class UserRepositoryImpl implements UserRepository {
+public class FileUserRepository implements UserRepository {
     private final Map<String, User> storage = new HashMap<>();
     private final File dbFile;
     private static final Logger log = Logger.getLogger("UserRepo");
 
-    public UserRepositoryImpl(String fileName) {
+    public FileUserRepository(String fileName) {
         this.dbFile = new File(fileName);
         load();
     }
