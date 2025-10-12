@@ -16,8 +16,8 @@ public class AppLauncher {
         var gameService = new GameServiceImpl(gameRepo, publisher);
 
         var controller = new VertxHttpController(gameService, userService);
-
         HttpServer server = vertx.createHttpServer();
+        controller.eventsWebSocket(server, "/api/events", vertx);
         server.requestHandler(controller.createRouter(vertx)).listen(8080);
     }
 }

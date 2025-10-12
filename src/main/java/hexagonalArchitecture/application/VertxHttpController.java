@@ -2,6 +2,10 @@ package hexagonalArchitecture.application;
 
 import hexagonalArchitecture.ports.GameService;
 import hexagonalArchitecture.ports.UserService;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.Router;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
@@ -21,12 +25,15 @@ public class VertxHttpController {
 
     public Router createRouter(Vertx vertx) {
         Router router = Router.router(vertx);
+        //HttpServer server = vertx.createHttpServer();
+
         router.route().handler(BodyHandler.create());
         router.post("/api/createGame").handler(this::createGame);
         router.post("/api/joinGame").handler(this::joinGame);
         router.post("/api/makeAMove").handler(this::makeMove);
         router.post("/api/registerUser").handler(this::registerUser);
         router.route("/public/*").handler(StaticHandler.create());
+        //this.eventsWebSocket(server, "/api/events", vertx);
         return router;
     }
 
@@ -47,9 +54,11 @@ public class VertxHttpController {
 
     private void makeMove(RoutingContext ctx) {
         var b = ctx.body().asJsonObject();
+
         try {
             int x = Integer.parseInt(b.getString("x"));
             int y = Integer.parseInt(b.getString("y"));
+            System.out.println("Received move: " + b);
             gameService.makeMove(b.getString("gameId"), b.getString("userId"), GameSymbolType.fromString(b.getString("symbol")),
                     x, y);
         } catch (Exception e) {
@@ -65,5 +74,24 @@ public class VertxHttpController {
         ctx.json(new JsonObject()
                 .put("userId", user.id())
                 .put("userName", user.name()));
+    }
+
+    protected void eventsWebSocket(HttpServer server, String path, Vertx vertx) {
+        server.webSocketHandler(webSocket -> {
+
+            webSocket.textMessageHandler(openMsg -> {
+                JsonObject obj = new JsonObject(openMsg);
+                String gameId = obj.getString("gameId");
+                System.out.println("Subscribing to events for game: " + gameId);
+
+                EventBus eb = vertx.eventBus();
+                var gameAddress = "ttt-events-" + gameId;
+                eb.consumer(gameAddress, msg -> {
+                    System.out.println("Event for game " + gameId + ": " + msg.body());
+                    JsonObject ev = (JsonObject) msg.body();
+                    webSocket.writeTextMessage(ev.encodePrettily());
+                });
+            });
+        });
     }
 }

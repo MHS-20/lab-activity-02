@@ -121,12 +121,23 @@
 				status.textContent = 'User ' + userId + ' joined the game ' + gameId + ' symbol: ' + symbol;
 
 				document.getElementById("moveBox").disabled = false;
+				console.log("joining game");
 
 								/* connect */			  
 				ws = new WebSocket('ws://' + location.host + '/api/events');
+
+				ws.addEventListener('open', () => {
+						ws.send('{ "gameId": "' + gameId + '" }');
+						status.textContent = 'Game joined';
+						console.log("Connection established");
+
+						playStatus.textContent = 'Waiting another player to join...';
+					});
+
 				ws.addEventListener('message', (evt) => {
 				  	handleServerEvent(JSON.parse(evt.data));
 				});
+
 				const events = document.getElementById('events');
 				events.value = '';
 

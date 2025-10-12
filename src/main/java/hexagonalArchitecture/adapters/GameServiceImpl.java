@@ -46,6 +46,7 @@ public class GameServiceImpl implements GameService {
                 .put("symbol", String.valueOf(symbol))
                 .put("x", x)
                 .put("y", y);
+        System.out.println("Publishing event to ttt-events-" + gameId + ": " + event.encode());
         events.publish("ttt-events-" + gameId, event);
 
         if (game.isGameEnd()) {
