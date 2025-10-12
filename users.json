@@ -1,0 +1,7 @@
+[ {
+  "userId" : "user-1",
+  "userName" : "my-player"
+}, {
+  "userId" : "user-2",
+  "userName" : "my-player2"
+} ]
